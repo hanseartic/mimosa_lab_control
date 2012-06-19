@@ -2,8 +2,8 @@
 // https://github.com/hanseartic/MotorShield
 #include <MotorShield.h>
 
-#define uptime 14400000  // four hours in milliseconds
-#define downtime 1800000 // half an hour in milliseconds
+#define uptime 1800000    // 5.5 hours in milliseconds
+#define downtime 19800000 // 1/2 hour in milliseconds
 
 MS_DCMotor motor(MOTOR_A);
 //int led = 13;
@@ -21,7 +21,7 @@ void loop() {
   // wind up the box
   // wait for half an hour
   // wind down the box
-  // wait for 4.5 hours
+  // wait for 5.5 hours
 }
 
 // run the motor until the end-switch is hit
