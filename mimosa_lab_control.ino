@@ -13,13 +13,20 @@ long long sketchtime = 0;
 long long sleeptime = uptime;
 long long waketime = downtime;
 
+int soundPin = 6;
+int lightPin = 7;
+
 void setup() {
   pinMode(led, OUTPUT);
   pinMode(closedSwitch, INPUT);
   pinMode(openedSwitch, INPUT);
+  pinMode(soundPin, OUTPUT);
+  pinMode(lightPin, OUTPUT);
+  
   motor.run(RELEASE);
   motor.setSpeed(255);
   Serial.begin(9600);
+  wakeUp();
 }
 
 void loop() {
@@ -64,6 +71,8 @@ void wakeUp() {
   // TODO:
   // set off all the other switches
   digitalWrite(led, HIGH);
+  digitalWrite(lightPin, HIGH);
+  digitalWrite(soundPin, HIGH);
 }
 
 void gotoSleep() {
@@ -72,6 +81,8 @@ void gotoSleep() {
   // TODO:
   // set off all the other switches
   digitalWrite(led, LOW);
+  digitalWrite(lightPin, LOW);
+  digitalWrite(soundPin, LOW);
 }
 
 void windUp() {
