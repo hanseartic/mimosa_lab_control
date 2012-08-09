@@ -2,8 +2,8 @@
 // https://github.com/hanseartic/MotorShield
 #include <MotorShield.h>
 
-#define uptime   1800000  // 0.5 hours in milliseconds
-#define downtime 19800000 // 5.5 hours in milliseconds
+#define uptime   19800000 // 5.5 hours in milliseconds
+#define downtime 1800000  // 0.5 hours in milliseconds
 
 MS_DCMotor motor(MOTOR_A);
 int led = 13;
@@ -94,12 +94,12 @@ void windUp() {
 }
 
 void windDown() {
+  takePicture();
 #ifdef DEBUG
   Serial.println("Lowering box");
 #endif
-  takePicture();
   motor.run(RELEASE | BACKWARD);
-   boolean ledstate = false;
+  boolean ledstate = false;
   while(digitalRead(closedSwitch) == LOW) {
     ledstate = !ledstate;
     digitalWrite(led, ledstate);
@@ -131,3 +131,4 @@ void takePicture() {
   }
   digitalWrite(led, LOW);
 }
+
