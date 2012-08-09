@@ -26,12 +26,10 @@ void setup() {
   motor.run(BRAKE);
   motor.setSpeed(255);
   Serial.begin(9600);
-  wakeUp();
 }
 
 void loop() {
   sketchtime = millis();
-  Serial.print(motor.getState());
   uint8_t motor_direction = motor.getDirection();
   if (BRAKE == motor.getState()) {
     if (waketime <= sketchtime) {
@@ -47,18 +45,22 @@ void loop() {
     case FORWARD:
       if (digitalRead(openedSwitch) == HIGH) {
         brakeMotor("top");
+#ifdef DEBUG        
         Serial.print("Now waiting ");
         Serial.print(int((waketime-millis()-downtime) / 1000));
         Serial.println(" seconds before lowering");
+#endif        
         takePicture();
       }
       break;
     case BACKWARD:
       if (digitalRead(closedSwitch) == HIGH) {
         brakeMotor("bottom");
+#ifdef DEBUG        
         Serial.print("Now waiting ");
         Serial.print(int((sleeptime-millis()-uptime) / 1000));
         Serial.println(" seconds before lifting");
+#endif
       }
       break;
     }
@@ -76,7 +78,9 @@ void gotoSleep() {
 }
 
 void windUp() {
+#ifdef DEBUG
   Serial.println("Lifting box");
+#endif
   digitalWrite(lightPin, HIGH);
   digitalWrite(soundPin, HIGH);
   motor.run(RELEASE | FORWARD);
@@ -90,7 +94,9 @@ void windUp() {
 }
 
 void windDown() {
+#ifdef DEBUG
   Serial.println("Lowering box");
+#endif
   takePicture();
   motor.run(RELEASE | BACKWARD);
    boolean ledstate = false;
@@ -106,7 +112,9 @@ void windDown() {
 
 void brakeMotor(String position) {
   motor.run(BRAKE);
+#ifdef DEBUG
   Serial.println("Box reached " + position);
+#endif
 }
 
 void takePicture() {
