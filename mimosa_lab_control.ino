@@ -23,7 +23,7 @@ void setup() {
   pinMode(soundPin, OUTPUT);
   pinMode(lightPin, OUTPUT);
   
-  motor.run(RELEASE);
+  motor.run(BRAKE);
   motor.setSpeed(255);
   Serial.begin(9600);
   wakeUp();
@@ -43,57 +43,83 @@ void loop() {
       windDown();
     }  
   } else {
-    switch (motor.getDirection()) {
+    switch (motor_direction) {
     case FORWARD:
       if (digitalRead(openedSwitch) == HIGH) {
-        brakeMotor();
+        brakeMotor("top");
+        Serial.print("Now waiting ");
+        Serial.print(int((waketime-millis()-downtime) / 1000));
+        Serial.println(" seconds before lowering");
+        takePicture();
       }
       break;
     case BACKWARD:
       if (digitalRead(closedSwitch) == HIGH) {
-        brakeMotor();
+        brakeMotor("bottom");
+        Serial.print("Now waiting ");
+        Serial.print(int((sleeptime-millis()-uptime) / 1000));
+        Serial.println(" seconds before lifting");
       }
       break;
     }
-    if ((digitalRead(closedSwitch) == LOW) && 
-        (digitalRead(openedSwitch) == LOW)) {
-        // wind up the box initially
-        windUp();
-        wakeUp();
-      }
-      
   }
 }
 
 void wakeUp() {
   sleeptime = millis() + uptime;
   waketime = sleeptime + downtime;
-  // TODO:
-  // set off all the other switches
-  digitalWrite(led, HIGH);
-  digitalWrite(lightPin, HIGH);
-  digitalWrite(soundPin, HIGH);
 }
 
 void gotoSleep() {
   waketime = millis() + downtime;
   sleeptime = waketime + uptime;
-  // TODO:
-  // set off all the other switches
+}
+
+void windUp() {
+  Serial.println("Lifting box");
+  digitalWrite(lightPin, HIGH);
+  digitalWrite(soundPin, HIGH);
+  motor.run(RELEASE | FORWARD);
+  boolean ledstate = false;
+  while(digitalRead(openedSwitch) == LOW) {
+    ledstate = !ledstate;
+    digitalWrite(led, ledstate);
+    delay(20);
+  }
+  digitalWrite(led, LOW);
+}
+
+void windDown() {
+  Serial.println("Lowering box");
+  takePicture();
+  motor.run(RELEASE | BACKWARD);
+   boolean ledstate = false;
+  while(digitalRead(closedSwitch) == LOW) {
+    ledstate = !ledstate;
+    digitalWrite(led, ledstate);
+    delay(20);
+  }
   digitalWrite(led, LOW);
   digitalWrite(lightPin, LOW);
   digitalWrite(soundPin, LOW);
 }
 
-void windUp() {
-  motor.run(RELEASE | FORWARD);
-}
-
-void windDown() {
-  motor.run(RELEASE | BACKWARD);
-}
-
-void brakeMotor() {
+void brakeMotor(String position) {
   motor.run(BRAKE);
+  Serial.println("Box reached " + position);
 }
 
+void takePicture() {
+  digitalWrite(led, HIGH);
+  Serial.println("shutter");
+  boolean pictureOK = false;
+  String serialRead = "";
+  while(! pictureOK) {
+    while (Serial.available()) {
+      char inChar = (char)Serial.read();
+      serialRead += inChar;
+    }
+    pictureOK = (serialRead.indexOf("OK") >= 0);
+  }
+  digitalWrite(led, LOW);
+}
