@@ -16,6 +16,9 @@ long long waketime = downtime;
 int soundPin = 6;
 int lightPin = 7;
 
+int motor_up = FORWARD;
+int motor_down = BACKWARD;
+
 void setup() {
   pinMode(led, OUTPUT);
   pinMode(closedSwitch, INPUT);
@@ -23,8 +26,21 @@ void setup() {
   pinMode(soundPin, OUTPUT);
   pinMode(lightPin, OUTPUT);
   
-  motor.run(BRAKE);
   motor.setSpeed(255);
+  motor.run(RELEASE | motor_down);
+  while (
+    (digitalRead(closedSwitch) == HIGH) && 
+    (digitalRead(openedSwitch) == HIGH)) {}
+  motor.run(BRAKE);
+  
+  if (digitalRead(openedSwitch) == LOW) {
+    motor_up = BACKWARD;
+    motor_down = FORWARD;
+    motor.run(RELEASE | motor_down);
+    while (digitalRead(closedSwitch) == HIGH) {}
+    motor.run(BRAKE);
+  }
+  
   Serial.begin(9600);
 }
 
@@ -41,9 +57,8 @@ void loop() {
       windDown();
     }  
   } else {
-    switch (motor_direction) {
-    case FORWARD:
-      if (digitalRead(openedSwitch) == HIGH) {
+    if (motor_direction == motor_up) {
+      if (digitalRead(openedSwitch) == LOW) {
         brakeMotor("top");
 #ifdef DEBUG        
         Serial.print("Now waiting ");
@@ -52,9 +67,8 @@ void loop() {
 #endif        
         takePicture();
       }
-      break;
-    case BACKWARD:
-      if (digitalRead(closedSwitch) == HIGH) {
+    } else if (motor_direction == motor_down) {
+      if (digitalRead(closedSwitch) == LOW) {
         brakeMotor("bottom");
 #ifdef DEBUG        
         Serial.print("Now waiting ");
@@ -62,7 +76,6 @@ void loop() {
         Serial.println(" seconds before lifting");
 #endif
       }
-      break;
     }
   }
 }
@@ -83,14 +96,15 @@ void windUp() {
 #endif
   digitalWrite(lightPin, HIGH);
   digitalWrite(soundPin, HIGH);
-  motor.run(RELEASE | FORWARD);
+  motor.run(RELEASE | motor_up);
   boolean ledstate = false;
-  while(digitalRead(openedSwitch) == LOW) {
+  while(digitalRead(openedSwitch) == HIGH) {
     ledstate = !ledstate;
     digitalWrite(led, ledstate);
     delay(20);
   }
   digitalWrite(led, LOW);
+  motor.run(BRAKE);
 }
 
 void windDown() {
@@ -98,14 +112,15 @@ void windDown() {
 #ifdef DEBUG
   Serial.println("Lowering box");
 #endif
-  motor.run(RELEASE | BACKWARD);
+  motor.run(RELEASE | motor_down);
   boolean ledstate = false;
-  while(digitalRead(closedSwitch) == LOW) {
+  while(digitalRead(closedSwitch) == HIGH) {
     ledstate = !ledstate;
     digitalWrite(led, ledstate);
     delay(20);
   }
   digitalWrite(led, LOW);
+  motor.run(BRAKE);
   digitalWrite(lightPin, LOW);
   digitalWrite(soundPin, LOW);
 }
@@ -121,7 +136,8 @@ void takePicture() {
   digitalWrite(led, HIGH);
   Serial.println("shutter");
   boolean pictureOK = false;
-  String serialRead = "";
+
+  String serialRead = "";  
   while(! pictureOK) {
     while (Serial.available()) {
       char inChar = (char)Serial.read();
@@ -129,6 +145,7 @@ void takePicture() {
     }
     pictureOK = (serialRead.indexOf("OK") >= 0);
   }
+  
   digitalWrite(led, LOW);
 }
 
