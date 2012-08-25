@@ -8,13 +8,13 @@
 MS_DCMotor motor(MOTOR_A);
 int led = 13;
 int closedSwitch = 2;
-int openedSwitch = 4;
+int openedSwitch = 3;
 long long sketchtime = 0;
 long long sleeptime = uptime;
 long long waketime = downtime;
 
 int soundPin = 6;
-int lightPin = 7;
+int lightPin = 5;
 
 int motor_up = FORWARD;
 int motor_down = BACKWARD;
@@ -29,15 +29,16 @@ void setup() {
   motor.setSpeed(255);
   motor.run(RELEASE | motor_down);
   while (
-    (digitalRead(closedSwitch) == HIGH) && 
-    (digitalRead(openedSwitch) == HIGH)) {}
+    (analogRead(closedSwitch) > 0) && 
+    (analogRead(openedSwitch) > 0)) {}
   motor.run(BRAKE);
   
-  if (digitalRead(openedSwitch) == LOW) {
+  
+  if (analogRead(openedSwitch) == 0) {
     motor_up = BACKWARD;
     motor_down = FORWARD;
     motor.run(RELEASE | motor_down);
-    while (digitalRead(closedSwitch) == HIGH) {}
+    while (analogRead(closedSwitch) > 0) {}
     motor.run(BRAKE);
   }
   
@@ -58,7 +59,7 @@ void loop() {
     }  
   } else {
     if (motor_direction == motor_up) {
-      if (digitalRead(openedSwitch) == LOW) {
+      if (analogRead(openedSwitch) == 0) {
         brakeMotor("top");
 #ifdef DEBUG        
         Serial.print("Now waiting ");
@@ -68,7 +69,7 @@ void loop() {
         takePicture();
       }
     } else if (motor_direction == motor_down) {
-      if (digitalRead(closedSwitch) == LOW) {
+      if (analogRead(closedSwitch) == 0) {
         brakeMotor("bottom");
 #ifdef DEBUG        
         Serial.print("Now waiting ");
@@ -98,7 +99,7 @@ void windUp() {
   digitalWrite(soundPin, HIGH);
   motor.run(RELEASE | motor_up);
   boolean ledstate = false;
-  while(digitalRead(openedSwitch) == HIGH) {
+  while(analogRead(openedSwitch) > 0) {
     ledstate = !ledstate;
     digitalWrite(led, ledstate);
     delay(20);
@@ -114,7 +115,7 @@ void windDown() {
 #endif
   motor.run(RELEASE | motor_down);
   boolean ledstate = false;
-  while(digitalRead(closedSwitch) == HIGH) {
+  while(analogRead(closedSwitch) > 0) {
     ledstate = !ledstate;
     digitalWrite(led, ledstate);
     delay(20);
