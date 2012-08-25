@@ -66,7 +66,6 @@ void loop() {
         Serial.print(int((waketime-millis()-downtime) / 1000));
         Serial.println(" seconds before lowering");
 #endif        
-        takePicture();
       }
     } else if (motor_direction == motor_down) {
       if (analogRead(closedSwitch) == 0) {
@@ -95,8 +94,6 @@ void windUp() {
 #ifdef DEBUG
   Serial.println("Lifting box");
 #endif
-  digitalWrite(lightPin, HIGH);
-  digitalWrite(soundPin, HIGH);
   motor.run(RELEASE | motor_up);
   boolean ledstate = false;
   while(analogRead(openedSwitch) > 0) {
@@ -104,11 +101,14 @@ void windUp() {
     digitalWrite(led, ledstate);
     delay(20);
   }
-  digitalWrite(led, LOW);
   motor.run(BRAKE);
+  digitalWrite(led, LOW);
+  takePicture();
+  digitalWrite(soundPin, HIGH);
 }
 
 void windDown() {
+  digitalWrite(soundPin, LOW);
   takePicture();
 #ifdef DEBUG
   Serial.println("Lowering box");
@@ -120,10 +120,8 @@ void windDown() {
     digitalWrite(led, ledstate);
     delay(20);
   }
-  digitalWrite(led, LOW);
   motor.run(BRAKE);
-  digitalWrite(lightPin, LOW);
-  digitalWrite(soundPin, LOW);
+  digitalWrite(led, LOW);
 }
 
 void brakeMotor(String position) {
@@ -134,11 +132,12 @@ void brakeMotor(String position) {
 }
 
 void takePicture() {
-  digitalWrite(led, HIGH);
-  Serial.println("shutter");
   boolean pictureOK = false;
-
-  String serialRead = "";  
+  String serialRead = "";
+  digitalWrite(led, HIGH);
+  digitalWrite(lightPin, HIGH);
+  delay(300);
+  Serial.println("shutter");
   while(! pictureOK) {
     while (Serial.available()) {
       char inChar = (char)Serial.read();
@@ -146,7 +145,8 @@ void takePicture() {
     }
     pictureOK = (serialRead.indexOf("OK") >= 0);
   }
-  
+  delay(300);
   digitalWrite(led, LOW);
+  digitalWrite(lightPin, LOW);
 }
 
