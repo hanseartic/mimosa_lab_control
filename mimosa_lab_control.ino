@@ -11,7 +11,7 @@ int closedSwitch = 2;
 int openedSwitch = 3;
 long long sketchtime = 0;
 long long sleeptime = uptime;
-long long waketime = downtime;
+long long waketime = 0;
 
 int soundPin = 6;
 int lightPin = 5;
@@ -33,6 +33,7 @@ void setup() {
     (analogRead(openedSwitch) > 0)) {}
   motor.run(BRAKE);
   
+  digitalWrite(lightPin, LOW);
   
   if (analogRead(openedSwitch) == 0) {
     motor_up = BACKWARD;
